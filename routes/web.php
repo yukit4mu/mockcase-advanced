@@ -49,7 +49,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/reviews/{review}/like', [ReviewLikeController::class, 'toggle'])->name('reviews.like');
 
     // CSVエクスポート
-    Route::get('/books/export/csv', [BookController::class, 'exportCsv'])->name('books.export.csv');
+    Route::get('/books/export/csv', [BookController::class, 'exportCsv'])->name('books.export');
     // Google Books API
     Route::get('/books/fetch', [BookController::class, 'fetch'])->name('books.fetch');
 });
