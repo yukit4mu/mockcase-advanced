@@ -1,0 +1,1 @@
+sail artisan make:seeder UserSeeder
