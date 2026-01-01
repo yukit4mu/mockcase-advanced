@@ -1,14 +1,10 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            書籍一覧
-        </h2>
-    </x-slot>
+    <x-slot name="header">書籍一覧</x-slot>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- 検索フォーム -->
-            <form action="{{ route('books.search') }}" method="GET" class="mb-6">
+            <form action="{{ route('books.index') }}" method="GET" class="mb-6">
                 <div class="flex">
                     <input type="text" name="query" placeholder="タイトルや著者名で検索..." 
                            class="flex-1 rounded-l-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" 
@@ -20,9 +16,12 @@
             </form>
 
             @auth
-            <div class="mb-4">
+            <div class="mb-4 flex gap-2">
                 <a href="{{ route('books.create') }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                     新規登録
+                </a>
+                <a href="{{ route('books.export') }}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                    CSVエクスポート
                 </a>
             </div>
             @endauth
@@ -33,9 +32,9 @@
                 </div>
             @endif
 
-            @if(isset($query) && $query)
+            @if(request('query'))
                 <div class="mb-4 text-gray-600">
-                    「{{ $query }}」の検索結果: {{ $books->total() }}件
+                    「{{ request('query') }}」の検索結果: {{ $books->total() }}件
                 </div>
             @endif
 
