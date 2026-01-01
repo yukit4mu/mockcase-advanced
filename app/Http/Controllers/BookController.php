@@ -17,15 +17,22 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class BookController extends Controller
 {
     /**
-     * 書籍一覧を表示
+     * 書籍一覧を表示（検索機能付き）
      */
-    public function index(): View
+    public function index(Request $request): View
     {
-        $books = Book::with('genres')
-            ->latest()
-            ->paginate(10);
+        $query = $request->input('query');
 
-        return view('books.index', compact('books'));
+        $books = Book::with('genres')
+            ->when($query, function ($q, $query) {
+                return $q->where('title', 'like', "%{$query}%")
+                         ->orWhere('author', 'like', "%{$query}%");
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('books.index', compact('books', 'query'));
     }
 
     /**
