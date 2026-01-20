@@ -1,62 +1,53 @@
 <?php
 
-use App\Http\Controllers\BookController;
-use App\Http\Controllers\GenreController;
-use App\Http\Controllers\ReviewController;
-use App\Http\Controllers\FavoriteController;
-use App\Http\Controllers\ReviewLikeController;
-use App\Http\Controllers\RankingController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CourseController;
+use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\ProfileController;
-
 use Illuminate\Support\Facades\Route;
 
-// トップページ（書籍一覧）
-Route::get('/', [BookController::class, 'index'])->name('home');
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register web routes for your application. These
+| routes are loaded by the RouteServiceProvider and all of them will
+| be assigned to the "web" middleware group. Make something great!
+|
+*/
 
-// 書籍関連（認証不要）
-Route::get('/books', [BookController::class, 'index'])->name('books.index');
-Route::get('/books/search', [BookController::class, 'search'])->name('books.search');
+// トップページ(コース一覧)
+Route::get("/", [CourseController::class, "index"])->name("home");
 
-// ランキング（認証不要）
-Route::get('/ranking', [RankingController::class, 'index'])->name('ranking.index');
+// コース詳細ページ(認証不要)
+Route::get("/courses/{course}", [CourseController::class, "show"])->name("courses.show");
 
 // 認証が必要なルート
-Route::middleware('auth')->group(function () {
-    // ジャンル管理
-    Route::resource('genres', GenreController::class)->except(['show']);
-
-    // 書籍管理（createとexportは{book}より先に定義）
-    Route::get('/books/create', [BookController::class, 'create'])->name('books.create');
-    Route::get('/books/export/csv', [BookController::class, 'exportCsv'])->name('books.export');
-    Route::get('/books/fetch', [BookController::class, 'fetch'])->name('books.fetch');
-    Route::post('/books', [BookController::class, 'store'])->name('books.store');
-    Route::get('/books/{book}/edit', [BookController::class, 'edit'])->name('books.edit');
-    Route::put('/books/{book}', [BookController::class, 'update'])->name('books.update');
-    Route::delete('/books/{book}', [BookController::class, 'destroy'])->name('books.destroy');
-
-    // レビュー管理
-    Route::post('/books/{book}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
-    Route::get('/reviews/{review}/edit', [ReviewController::class, 'edit'])->name('reviews.edit');
-    Route::put('/reviews/{review}', [ReviewController::class, 'update'])->name('reviews.update');
-    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
-
-    // お気に入り
-    Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
-    Route::post('/books/{book}/favorite', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
-
-    // いいね
-    Route::post('/reviews/{review}/like', [ReviewLikeController::class, 'toggle'])->name('reviews.like');
-
-    // プロファイル
+Route::middleware(["auth"])->group(function () {
+    // プロフィール関連のルート
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
+    // 受講登録(受講生のみ)
+    Route::get('/enrollments', [EnrollmentController::class, 'index'])->name('enrollments.index');
+    Route::post('/enrollments', [EnrollmentController::class, 'store'])->name('enrollments.store');
+    Route::delete('/enrollments/{enrollment}', [EnrollmentController::class, 'destroy'])->name('enrollments.destroy');
+    
+    // カテゴリ管理(管理者のみ)
+    Route::middleware(['role:admin'])->group(function () {
+        Route::resource('categories', CategoryController::class);
+    });
+    
+    // コース管理(講師と管理者のみ)
+    Route::middleware(['role:instructor,admin'])->group(function () {
+        Route::get('/courses/create', [CourseController::class, 'create'])->name('courses.create');
+        Route::post('/courses', [CourseController::class, 'store'])->name('courses.store');
+        Route::get('/courses/{course}/edit', [CourseController::class, 'edit'])->name('courses.edit');
+        Route::patch('/courses/{course}', [CourseController::class, 'update'])->name('courses.update');
+        Route::delete('/courses/{course}', [CourseController::class, 'destroy'])->name('courses.destroy');
+    });
 });
-
-// 書籍詳細（認証不要、{book}パラメータを含むため最後に定義）
-Route::get('/books/{book}', [BookController::class, 'show'])->name('books.show');
-
-// ジャンル別書籍一覧（認証不要）
-Route::get('/genres/{genre}', [GenreController::class, 'show'])->name('genres.show');
 
 require __DIR__.'/auth.php';
